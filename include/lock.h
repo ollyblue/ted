@@ -67,7 +67,6 @@ public:
 	inline virtual bool Lock()
 	{
 		return ::pthread_mutex_lock(&m_lock);
-		return true;
 	}
 
 	inline virtual bool UnLock()
