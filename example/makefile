@@ -1,5 +1,5 @@
 
-BINS		:=singleton
+BINS		:=singleton log
 CXX			:=g++
 CFLAGS		:=-g -Wall
 
