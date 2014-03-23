@@ -92,8 +92,8 @@ public:
             const uint64_t ddwMaxLogSize = DEFAULT_LOG_SIZE,
             const uint32_t dwMaxLogNum = DEFAULT_LOG_FILE_NUM);
 
- inline const char * GetLastErrMsg() { return m_szErrMsg; }
- inline const LOG_LEVEL GetLogLevel() { return m_dwLogLevel; }
+ inline const char * GetLastErrMsg() const   { return m_szErrMsg; }
+ inline const LOG_LEVEL GetLogLevel() const  { return m_dwLogLevel; }
  inline void SetLogLevel(const LOG_LEVEL dwLogLevel) { this->m_dwLogLevel = dwLogLevel; }
 
  bool Write(const std::string& strFile,
