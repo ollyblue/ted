@@ -57,7 +57,7 @@ const uint32_t MAX_ERR_MSG_SIZE = 1024;
 const uint32_t KB = 1024;
 const uint32_t MB = 1024 * KB;
 const uint32_t GB = 1024 * MB;
-const uint64_t DEFAULT_LOG_SIZE = 10 * KB;
+const uint64_t DEFAULT_LOG_SIZE = 10 * MB;
 const uint32_t DEFAULT_LOG_FILE_NUM = 3;
 
 enum LOG_LEVEL
