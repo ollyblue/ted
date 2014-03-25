@@ -20,18 +20,29 @@
 
 int main(int argc, const char *argv[])
 {
-  ted::CLog log;
+  //ted::CLog log;
 
-  log.Init("/tmp/log/", __FILE__,  ted::LOG_LEVEL_ALL, 100ull, 5 );
-  int i = 1000;
+  // log.Init("/tmp/log/", __FILE__,  ted::LOG_LEVEL_ALL, 100ull, 5 );
+  TED_LOG->Init("/tmp/log/", __FILE__,  ted::LOG_LEVEL_ALL, 100ull, 5 );
+#if 0
+  int i = 100000;
   while(i--)
   {
     std::string strMsg("test log");
-    strMsg =  strMsg + log.GetDate() + "\n";
-    if( !log.WriteBase(strMsg, ted::LOG_LEVEL_ALL) )
+    if( !log.Write(__FILE__,
+                   __func__,
+                   __LINE__,
+                   ted::LOG_LEVEL_ALL,
+                   "%s",
+                   strMsg.c_str()) )
     {
       printf("err:%s\n", log.GetLastErrMsg());
     }
   }
+#endif
+
+  int a = 10;
+  TED_LOG_DEBUG("a:%d", a);
+  TED_LOG->Flush();
   return 0;
 }

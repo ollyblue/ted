@@ -19,16 +19,19 @@
 #ifndef _TED_LOG_H
 #define _TED_LOG_H
 
+#include "singleton.h"
 #include "lock.h"
 
-#include <stdint.h>
+#include <stdint.h> // for uint32_t type define
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <time.h>
+#include <time.h> // for time() localtime_r()
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/stat.h>
+#include <sys/stat.h> // for stat
+#include <string.h> // for strnlen
+#include <stdarg.h> // for va_list,va_start,va_end
 
 namespace ted {
 
@@ -59,6 +62,7 @@ const uint32_t MB = 1024 * KB;
 const uint32_t GB = 1024 * MB;
 const uint64_t DEFAULT_LOG_SIZE = 10 * MB;
 const uint32_t DEFAULT_LOG_FILE_NUM = 3;
+const uint32_t MAX_BUFF_WRITE_SIZE = 10 * KB;
 
 enum LOG_LEVEL
 {
@@ -102,9 +106,9 @@ public:
             const LOG_LEVEL dwLogLevel,
             const char* strFormat,
             ...);
+ void Flush();
 
 private:
- bool ShiftAllFiles();
  bool ShiftOneTypeFile(std::ofstream& ofsOutFile,
                        const std::string& strLogPath);
  bool InitLogPath();
@@ -122,6 +126,7 @@ public:
             const LOG_LEVEL dwLogLevel);
  std::string GetDate();
 
+ const char* GetErrStrByLevel(const LOG_LEVEL dwLogLevel);
   
 private:
  char    m_szErrMsg[MAX_ERR_MSG_SIZE];
@@ -190,12 +195,28 @@ bool CLog::Write(const std::string& strFile,
             const char* strFormat,
             ...)
 {
-  return true;
-}
+  char szBuff[MAX_BUFF_WRITE_SIZE] = { '\0' };
+  size_t dwBuffLen = 0;
 
-bool CLog::ShiftAllFiles()
-{
-  return true;
+  // write date
+  std::string strDate = this->GetDate();
+  snprintf(szBuff, sizeof(szBuff),"[%s] ", strDate.c_str());
+  const char* pLogErrMsg = GetErrStrByLevel(dwLogLevel);
+
+  dwBuffLen = strnlen(szBuff, sizeof(szBuff));
+  snprintf(szBuff + dwBuffLen, sizeof(szBuff) - dwBuffLen, "[%s] [%s:%u] [%s] ",
+           pLogErrMsg, strFile.c_str(), dwLine, strFunction.c_str());
+
+  dwBuffLen = strnlen(szBuff, sizeof(szBuff));
+
+  va_list ap;
+  va_start(ap, strFormat);
+  vsnprintf(szBuff + dwBuffLen, sizeof(szBuff) - dwBuffLen, strFormat, ap);
+  va_end(ap);
+  dwBuffLen = strnlen(szBuff, sizeof(szBuff));
+  szBuff[dwBuffLen] = '\n';
+
+  return WriteBase(szBuff, dwLogLevel);
 }
 
 bool CLog::ShiftOneTypeFile(std::ofstream& ofsOutFile,
@@ -269,6 +290,7 @@ bool CLog::ProcessWrite(std::ofstream& ofsOutFile,
     return false;
   }
 
+  ted::CAutoLock lock(m_mutex);
   ofsOutFile << strMsg;
 
   return true;
@@ -371,6 +393,32 @@ void CLog::GetLogFilePathByIndex(const std::string& strLogPath,
   }
 }
 
+const char* CLog::GetErrStrByLevel(const LOG_LEVEL dwLogLevel)
+{
+  switch(dwLogLevel)
+  {
+    case LOG_LEVEL_FATAL:
+      return "fatal";
+    case LOG_LEVEL_EMERG:
+      return "emerg";
+    case LOG_LEVEL_ERROR:
+      return "error";
+    case LOG_LEVEL_WARN:
+      return "warn";
+    case LOG_LEVEL_RUN:
+      return "run";
+    case LOG_LEVEL_INFO:
+      return "info";
+    case LOG_LEVEL_DEBUG:
+      return "debug";
+    case LOG_LEVEL_ALL:
+      return "all";
+    default:
+      return "unkown level";
+  }
+  return "unkown level";
+}
+
 template <typename T>
 std::string CLog::ToString(const T& v)
 {
@@ -378,6 +426,26 @@ std::string CLog::ToString(const T& v)
   oss << v;
   return oss.str();
 }
+
+void CLog::Flush()
+{
+  FILE_SAFE_FLUSH(m_ofsOutFatalFile);
+  FILE_SAFE_FLUSH(m_ofsOutEmergFile);
+  FILE_SAFE_FLUSH(m_ofsOutErrorFile);
+  FILE_SAFE_FLUSH(m_ofsOutWarnFile);
+  FILE_SAFE_FLUSH(m_ofsOutInfoFile);
+  FILE_SAFE_FLUSH(m_ofsOutRunFile);
+  FILE_SAFE_FLUSH(m_ofsOutDebugFile);
+}
+
+/// define for use
+typedef ted::CSingleton<ted::CLog, ted::CMutex> TED_CLOG_SINGLETION;
+
+#define TED_LOG ted::TED_CLOG_SINGLETION::Instance()
+
+#define TED_LOG_DEBUG(fmt, args...) do {\
+  TED_LOG->Write(__FILE__, __func__, __LINE__, ted::LOG_LEVEL_DEBUG, fmt, args); \
+}while(0)
 
 } // !namesapce ted
 #endif // !_TED_LOG_H
