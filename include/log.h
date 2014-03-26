@@ -225,7 +225,7 @@ bool CLog::Write(const std::string& strFile,
   va_end(ap);
   if( nLen > 0 && nLen < ( sizeof(szBuffLen) - dwBuffLen ))
   {
-  	szBuff[nLen] = '\0';
+  	szBuff[nLen] = '\n';
   }
 
   return WriteBase(szBuff, dwLogLevel);
