@@ -6,7 +6,7 @@
 
 struct Data
 {
-	int a;
+  int a;
 };
 
 // typedef ted::CSingleton<Data, ted::CDummyLock> TED_DATA;
@@ -18,10 +18,10 @@ typedef ted::CSingleton<Data, ted::CMutex> TED_DATA;
 
 int main(int argc, const char *argv[])
 {
-	DATA->a = 10;
-	printf("a:%d\n", DATA->a);
+  DATA->a = 10;
+  printf("a:%d\n", DATA->a);
   SETA(2);
   PRINTA();
-	return 0;
+  return 0;
 }
 
