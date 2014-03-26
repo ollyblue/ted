@@ -97,7 +97,9 @@ public:
             const uint32_t dwMaxLogNum = DEFAULT_LOG_FILE_NUM);
 
  inline const char * GetLastErrMsg() const   { return m_szErrMsg; }
+ 
  inline const LOG_LEVEL GetLogLevel() const  { return m_dwLogLevel; }
+ 
  inline void SetLogLevel(const LOG_LEVEL dwLogLevel) { this->m_dwLogLevel = dwLogLevel; }
 
  bool Write(const std::string& strFile,
@@ -106,28 +108,35 @@ public:
             const LOG_LEVEL dwLogLevel,
             const char* strFormat,
             ...);
+            
  void FlushByLevel(const LOG_LEVEL dwLogLevel);
+ 
  void FlushAll();
 
 private:
  bool ShiftOneTypeFile(std::ofstream& ofsOutFile,
                        const std::string& strLogPath);
  bool InitLogPath();
+ 
  size_t GetFileSize(const std::string& strFilePath);
+ 
  void GetLogFilePathByIndex(const std::string& strLogPath,
                             uint32_t dwIndex,
                             std::string& strNewPath);
+                            
  template <typename T>
  std::string ToString(const T& v);
-public:
+
  bool ProcessWrite(std::ofstream& ofsOutFile,
                   const std::string& strLogPath,
                   const std::string& strMsg);
+                  
  bool WriteBase(const std::string& strMsg, 
             const LOG_LEVEL dwLogLevel);
+            
  std::string GetDate();
 
- const char* GetErrStrByLevel(const LOG_LEVEL dwLogLevel);
+ const char* GetErrStrByLevel(const LOG_LEVEL dwLogLevel) const;
   
 private:
  char    m_szErrMsg[MAX_ERR_MSG_SIZE];
@@ -212,10 +221,12 @@ bool CLog::Write(const std::string& strFile,
 
   va_list ap;
   va_start(ap, strFormat);
-  vsnprintf(szBuff + dwBuffLen, sizeof(szBuff) - dwBuffLen, strFormat, ap);
+  int nLen = vsnprintf(szBuff + dwBuffLen, sizeof(szBuff) - dwBuffLen, strFormat, ap);
   va_end(ap);
-  dwBuffLen = strnlen(szBuff, sizeof(szBuff));
-  szBuff[dwBuffLen] = '\n';
+  if( nLen > 0 && nLen < ( sizeof(szBuffLen) - dwBuffLen ))
+  {
+  	szBuff[nLen] = '\0';
+  }
 
   return WriteBase(szBuff, dwLogLevel);
 }
@@ -428,32 +439,34 @@ std::string CLog::ToString(const T& v)
   return oss.str();
 }
 
-void CLog::FlushByLevel(const LOG_LEVEL dwLogLevel)
+void CLog::FlushByLevel(const LOG_LEVEL dwLogLevel) const
 {
-	switch(dwLogLevel)
-	{
-		case LOG_LEVEL_FATAL:
-			FILE_SAFE_FLUSH(m_ofsOutFatalFile);
-			break;
-		case LOG_LEVEL_EMERG:
-			FILE_SAFE_FLUSH(m_ofsOutEmergFile);
-			break;
-		case LOG_LEVEL_ERROR:
-			FILE_SAFE_FLUSH(m_ofsOutErrorFile);
-			break;
-		case LOG_LEVEL_WARN:
-			FILE_SAFE_FLUSH(m_ofsOutWarnFile);
-			break;
-		case LOG_LEVEL_RUN:
-			FILE_SAFE_FLUSH(m_ofsOutRunFile);
-			break;
-		case LOG_LEVEL_INFO:
-			FILE_SAFE_FLUSH(m_ofsOutInfoFile);
-			break;
-		case LOG_LEVEL_DEBUG:
-			FILE_SAFE_FLUSH(m_ofsOutDebugFile);
-			break;
-	}
+  switch(dwLogLevel)
+  {
+        case LOG_LEVEL_FATAL:
+		FILE_SAFE_FLUSH(m_ofsOutFatalFile);
+		break;
+	case LOG_LEVEL_EMERG:
+		FILE_SAFE_FLUSH(m_ofsOutEmergFile);
+		break;
+	case LOG_LEVEL_ERROR:
+		FILE_SAFE_FLUSH(m_ofsOutErrorFile);
+		break;
+	case LOG_LEVEL_WARN:
+		FILE_SAFE_FLUSH(m_ofsOutWarnFile);
+		break;
+	case LOG_LEVEL_RUN:
+		FILE_SAFE_FLUSH(m_ofsOutRunFile);
+		break;
+	case LOG_LEVEL_INFO:
+		FILE_SAFE_FLUSH(m_ofsOutInfoFile);
+		break;
+	case LOG_LEVEL_DEBUG:
+		FILE_SAFE_FLUSH(m_ofsOutDebugFile);
+		break;
+	default:
+		break;
+  }
 }
 
 void CLog::FlushAll()
