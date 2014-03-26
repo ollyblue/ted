@@ -403,7 +403,13 @@ std::string CLog::GetDate()
   localtime_r(&dwTime, &stTm);
   char szBuff[64] = { 0 };
   snprintf(szBuff, sizeof(szBuff) - 1, "%04d-%02d-%02d %02d:%02d:%02d",
-           stTm.tm_year + 1900, stTm.tm_mon + 1, stTm.tm_mday, stTm.tm_hour, stTm.tm_min, stTm.tm_sec);
+           stTm.tm_year + 1900,
+           stTm.tm_mon + 1,
+           stTm.tm_mday,
+           stTm.tm_hour,
+           stTm.tm_min,
+           stTm.tm_sec);
+
   return std::string(szBuff);
 }
 
