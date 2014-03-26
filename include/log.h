@@ -528,6 +528,6 @@ void CLog::FlushAll()
   FILE_SAFE_FLUSH(m_ofsOutDebugFile);
 }
 
-} // !namesapce ted
+} // !namespace ted
 #endif // !_TED_LOG_H
 
