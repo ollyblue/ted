@@ -38,7 +38,7 @@ namespace ted {
 class CLog;
 
 /// define for use
-typedef ted::CSingleton<ted::CLog, ted::CMutex> ted::TED_CLOG_SINGLETION;
+typedef ted::CSingleton<ted::CLog, ted::CMutex> TED_CLOG_SINGLETION;
 #define TED_LOG ted::TED_CLOG_SINGLETION::Instance()
 
 #define TED_LOG_DEBUG(fmt, args...) do {\
@@ -264,9 +264,10 @@ bool CLog::Write(const std::string& strFile,
   va_start(ap, strFormat);
   int nLen = vsnprintf(szBuff + dwBuffLen, sizeof(szBuff) - dwBuffLen, strFormat, ap);
   va_end(ap);
-  if( nLen > 0 && nLen < ( sizeof(szBuffLen) - dwBuffLen ))
+  // optimize for strnlen, just use the return of vsnprintf
+  if( nLen > 0 && static_cast<size_t>(nLen) < ( sizeof(szBuff) - dwBuffLen ))
   {
-  	szBuff[nLen] = '\n';
+  	szBuff[nLen + dwBuffLen] = '\n';
   }
 
   return WriteBase(szBuff, dwLogLevel);
@@ -446,7 +447,7 @@ void CLog::GetLogFilePathByIndex(const std::string& strLogPath,
   }
 }
 
-const char* CLog::GetErrStrByLevel(const LOG_LEVEL dwLogLevel)
+const char* CLog::GetErrStrByLevel(const LOG_LEVEL dwLogLevel) const
 {
   switch(dwLogLevel)
   {
@@ -480,33 +481,33 @@ std::string CLog::ToString(const T& v)
   return oss.str();
 }
 
-void CLog::FlushByLevel(const LOG_LEVEL dwLogLevel) const
+void CLog::FlushByLevel(const LOG_LEVEL dwLogLevel) 
 {
   switch(dwLogLevel)
   {
-        case LOG_LEVEL_FATAL:
-		FILE_SAFE_FLUSH(m_ofsOutFatalFile);
-		break;
-	case LOG_LEVEL_EMERG:
-		FILE_SAFE_FLUSH(m_ofsOutEmergFile);
-		break;
-	case LOG_LEVEL_ERROR:
-		FILE_SAFE_FLUSH(m_ofsOutErrorFile);
-		break;
-	case LOG_LEVEL_WARN:
-		FILE_SAFE_FLUSH(m_ofsOutWarnFile);
-		break;
-	case LOG_LEVEL_RUN:
-		FILE_SAFE_FLUSH(m_ofsOutRunFile);
-		break;
-	case LOG_LEVEL_INFO:
-		FILE_SAFE_FLUSH(m_ofsOutInfoFile);
-		break;
-	case LOG_LEVEL_DEBUG:
-		FILE_SAFE_FLUSH(m_ofsOutDebugFile);
-		break;
-	default:
-		break;
+    case LOG_LEVEL_FATAL:
+      FILE_SAFE_FLUSH(m_ofsOutFatalFile);
+      break;
+    case LOG_LEVEL_EMERG:
+      FILE_SAFE_FLUSH(m_ofsOutEmergFile);
+      break;
+    case LOG_LEVEL_ERROR:
+      FILE_SAFE_FLUSH(m_ofsOutErrorFile);
+      break;
+    case LOG_LEVEL_WARN:
+      FILE_SAFE_FLUSH(m_ofsOutWarnFile);
+      break;
+    case LOG_LEVEL_RUN:
+      FILE_SAFE_FLUSH(m_ofsOutRunFile);
+      break;
+    case LOG_LEVEL_INFO:
+      FILE_SAFE_FLUSH(m_ofsOutInfoFile);
+      break;
+    case LOG_LEVEL_DEBUG:
+      FILE_SAFE_FLUSH(m_ofsOutDebugFile);
+      break;
+    default:
+      break;
   }
 }
 

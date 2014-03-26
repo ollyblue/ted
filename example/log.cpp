@@ -43,6 +43,5 @@ int main(int argc, const char *argv[])
 
   int a = 10;
   TED_LOG_DEBUG("a:%d", a);
-  TED_LOG->Flush();
   return 0;
 }
