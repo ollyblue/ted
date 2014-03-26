@@ -106,7 +106,8 @@ public:
             const LOG_LEVEL dwLogLevel,
             const char* strFormat,
             ...);
- void Flush();
+ void FlushByLevel(const LOG_LEVEL dwLogLevel);
+ void FlushAll();
 
 private:
  bool ShiftOneTypeFile(std::ofstream& ofsOutFile,
@@ -427,7 +428,35 @@ std::string CLog::ToString(const T& v)
   return oss.str();
 }
 
-void CLog::Flush()
+void CLog::FlushByLevel(const LOG_LEVEL dwLogLevel)
+{
+	switch(dwLogLevel)
+	{
+		case LOG_LEVEL_FATAL:
+			FILE_SAFE_FLUSH(m_ofsOutFatalFile);
+			break;
+		case LOG_LEVEL_EMERG:
+			FILE_SAFE_FLUSH(m_ofsOutEmergFile);
+			break;
+		case LOG_LEVEL_ERROR:
+			FILE_SAFE_FLUSH(m_ofsOutErrorFile);
+			break;
+		case LOG_LEVEL_WARN:
+			FILE_SAFE_FLUSH(m_ofsOutWarnFile);
+			break;
+		case LOG_LEVEL_RUN:
+			FILE_SAFE_FLUSH(m_ofsOutRunFile);
+			break;
+		case LOG_LEVEL_INFO:
+			FILE_SAFE_FLUSH(m_ofsOutInfoFile);
+			break;
+		case LOG_LEVEL_DEBUG:
+			FILE_SAFE_FLUSH(m_ofsOutDebugFile);
+			break;
+	}
+}
+
+void CLog::FlushAll()
 {
   FILE_SAFE_FLUSH(m_ofsOutFatalFile);
   FILE_SAFE_FLUSH(m_ofsOutEmergFile);
@@ -439,12 +468,42 @@ void CLog::Flush()
 }
 
 /// define for use
-typedef ted::CSingleton<ted::CLog, ted::CMutex> TED_CLOG_SINGLETION;
-
+typedef ted::CSingleton<ted::CLog, ted::CMutex> ted::TED_CLOG_SINGLETION;
 #define TED_LOG ted::TED_CLOG_SINGLETION::Instance()
 
 #define TED_LOG_DEBUG(fmt, args...) do {\
   TED_LOG->Write(__FILE__, __func__, __LINE__, ted::LOG_LEVEL_DEBUG, fmt, args); \
+  TED_LOG->FlushByLevel(ted::LOG_LEVEL_DEBUG); \
+}while(0)
+
+#define TED_LOG_INFO(fmt, args...) do {\
+  TED_LOG->Write(__FILE__, __func__, __LINE__, ted::LOG_LEVEL_INFO, fmt, args); \
+  TED_LOG->FlushByLevel(ted::LOG_LEVEL_INFO); \
+}while(0)
+
+#define TED_LOG_RUN(fmt, args...) do {\
+  TED_LOG->Write(__FILE__, __func__, __LINE__, ted::LOG_LEVEL_RUN, fmt, args); \
+  TED_LOG->FlushByLevel(ted::LOG_LEVEL_RUN); \
+}while(0)
+
+#define TED_LOG_WARN(fmt, args...) do {\
+  TED_LOG->Write(__FILE__, __func__, __LINE__, ted::LOG_LEVEL_WARN, fmt, args); \
+  TED_LOG->FlushByLevel(ted::LOG_LEVEL_WARN); \
+}while(0)
+
+#define TED_LOG_ERROR(fmt, args...) do {\
+  TED_LOG->Write(__FILE__, __func__, __LINE__, ted::LOG_LEVEL_ERROR, fmt, args); \
+  TED_LOG->FlushByLevel(ted::LOG_LEVEL_ERROR); \
+}while(0)
+
+#define TED_LOG_EMERG(fmt, args...) do {\
+  TED_LOG->Write(__FILE__, __func__, __LINE__, ted::LOG_LEVEL_EMERG, fmt, args); \
+  TED_LOG->FlushByLevel(ted::LOG_LEVEL_EMERG); \
+}while(0)
+
+#define TED_LOG_FATAL(fmt, args...) do {\
+  TED_LOG->Write(__FILE__, __func__, __LINE__, ted::LOG_LEVEL_FATAL, fmt, args); \
+  TED_LOG->FlushByLevel(ted::LOG_LEVEL_FATAL); \
 }while(0)
 
 } // !namesapce ted
