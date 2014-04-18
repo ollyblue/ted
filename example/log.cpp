@@ -23,7 +23,11 @@ int main(int argc, const char *argv[])
   //ted::CLog log;
 
   // log.Init("/tmp/log/", __FILE__,  ted::LOG_LEVEL_ALL, 100ull, 5 );
-  TED_LOG->Init("/tmp/log/", __FILE__,  ted::LOG_LEVEL_ALL, 100ull, 5 );
+  TED_LOG->Init("/tmp/log/",
+                __FILE__,
+                ted::LOG_LEVEL_ALL,
+                100ull,
+                5 );
 #if 0
   int i = 100000;
   while(i--)
@@ -43,5 +47,6 @@ int main(int argc, const char *argv[])
 
   int a = 10;
   TED_LOG_DEBUG("a:%d", a);
+  TED_LOG_ERROR("a:%d", a);
   return 0;
 }
